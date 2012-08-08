@@ -9,9 +9,11 @@ Changelog
 
 - Add german translations
   [pbauer]
-  
+
 - Allow styling of subscribe-link
   [pbauer]
+
+- start using IMailHost utility to allow easy 3rd-party integration [amleczko]
 
 0.5 (2012-04-16)
 ----------------

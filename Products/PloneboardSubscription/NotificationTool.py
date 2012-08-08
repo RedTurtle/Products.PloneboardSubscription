@@ -16,6 +16,9 @@ from Products.CMFCore.utils import UniqueObject
 from Products.CMFCore.utils import getToolByName
 from zope.i18n import translate
 from Products.CMFPlone.i18nl10n import ulocalized_time
+from Products.MailHost.interfaces import IMailHost
+from zope.component import getUtility
+
 
 ID = 'portal_pbnotification'
 TITLE = 'Ploneboard Notification tool'
@@ -25,7 +28,6 @@ LOG = logging.getLogger('PloneboardNotification')
 
 EMAIL_ADDRESS_IN_HEADER_REGEXP = re.compile('(?:\s*,\s*)?(.*?) <(.*?)>')
 EMAIL_REGEXP = re.compile('^[0-9a-zA-Z_&.%+-]+@([0-9a-zA-Z]([0-9a-zA-Z-]*[0-9a-zA-Z])?\.)+[a-zA-Z]{2,6}$')
-MAIL_HOST_META_TYPES = ('MockMailHost', 'Secure Maildrop Host', 'Maildrop Host', 'Secure Mail Host', 'Mail Host', )
 
 class NotificationTool(UniqueObject, SimpleItem, PropertyManager):
     """Main notification tool."""
@@ -259,12 +261,7 @@ page after logging in.
 
     def sendNotification(self, address, fullname, message):
         """Send ``message`` to all ``addresses``."""
-        for m in MAIL_HOST_META_TYPES:
-            mailhosts = self.superValues(m)
-            if mailhosts: break
-        if not mailhosts:
-            raise MailHostNotFound
-        mailhost = mailhosts[0]
+        mailhost = getUtility(IMailHost)
 
         ptool = getToolByName(self, 'portal_properties').site_properties
         portal = getToolByName(self, 'portal_url').getPortalObject()
@@ -287,9 +284,6 @@ Subject: %s Forum Notification
                      address, this_message)
             return 0
 
-        msg_type = 'text/plain'
-        if self.html_format:
-            msg_type = 'text/html'
         try:
             mailhost.send(this_message)
             n_messages_sent += 1
